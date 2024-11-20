@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 
-url="https://midas.minsal.cl/farmacia_v2/WS/getLocales.php"
+API="https://midas.minsal.cl/farmacia_v2/WS/getLocales.php"
 
 def obtenerDatos():
     try:
-        response = requests.get(API_URL)
+        response = requests.get(API)  # Realizar una solicitud GET a la API
         # Mostrar el contenido de la respuesta
         st.write("Respuesta:", response.text)  # Muestra el cuerpo de la respuesta
         st.write("Código de estado:", response.status_code)  # Muestra el código de estado
