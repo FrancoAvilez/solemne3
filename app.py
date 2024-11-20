@@ -5,14 +5,17 @@ import requests
 
 url="https://midas.minsal.cl/farmacia_v2/WS/getLocales.php"
 
-def obtenerDatos():
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return pd.DataFrame(response.json())
-    else:
-        st.error("Error al obtener datos de la API.")
-        return pd.DataFrame()  # Devuelve un DataFrame vacío si falla
+# def obtenerDatos():
+#     response = requests.get(url)
+#     if response.status_code == 200:
+#         data = response.json()
+#         return pd.DataFrame(response.json())
+#     else:
+#         st.error("Error al obtener datos de la API.")
+#         return pd.DataFrame()  # Devuelve un DataFrame vacío si falla
+response = requests.get(url)
+data = response.json()
+datos = pd.DataFrame(data)
 
 st.set_page_config(page_title="Farmacias Chile", page_icon=":flag_chile:", layout="wide")
 
@@ -25,7 +28,7 @@ with st.container():
 
 
 # Cargar datos
-datos = obtenerDatos()
+#datos = obtenerDatos()
 
 if not datos.empty:
     # Mostrar tabla
