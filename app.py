@@ -26,7 +26,7 @@ API="https://midas.minsal.cl/farmacia_v2/WS/getLocales.php"
 #         return pd.DataFrame()  # Devuelve un DataFrame vacío si hay un error
 
 # Ruta al archivo JSON (asumimos que está en el mismo directorio que app.py)
-json_file_path = 'datos.json'
+json_file_path = 'data.json'
 
 def obtenerDatos():
     try:
