@@ -63,7 +63,7 @@ if not datos.empty:
     comuna_seleccionada = st.selectbox("Selecciona una comuna", options=comunas)
 
     # Filtrar datos
-    datos_filtrados = datos[datos["comuna"] == comuna_seleccionada]
+    datos_filtrados = datos[datos["comuna_nombre"] == comuna_seleccionada]
 
     # Mostrar datos filtrados
     st.write(f"Farmacias en {comuna_seleccionada}:")
@@ -74,7 +74,7 @@ if not datos_filtrados.empty:
     st.subheader("Gráfico: Cantidad de Farmacias por Comuna")
 
     # Datos para el gráfico
-    grafico_datos = datos_filtrados["comuna"].value_counts()
+    grafico_datos = datos_filtrados["comuna_nombre"].value_counts()
 
     # Crear el gráfico
     fig, ax = plt.subplots()
