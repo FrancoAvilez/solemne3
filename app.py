@@ -6,13 +6,24 @@ import requests
 url="https://midas.minsal.cl/farmacia_v2/WS/getLocales.php"
 
 def obtenerDatos():
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return pd.DataFrame(response.json())
-    else:
-        st.error("Error al obtener datos de la API.")
-        return pd.DataFrame()  # Devuelve un DataFrame vacío si falla
+    try:
+        response = requests.get(API_URL)
+        # Mostrar el contenido de la respuesta
+        st.write("Respuesta:", response.text)  # Muestra el cuerpo de la respuesta
+        st.write("Código de estado:", response.status_code)  # Muestra el código de estado
+
+        # Asegúrate de que la respuesta tenga un código de estado 200
+        if response.status_code == 200:
+            data = response.json()  # Convirtiendo la respuesta JSON a un diccionario de Python
+            st.write("Datos obtenidos:", data)  # Muestra los datos obtenidos
+            return pd.DataFrame(data)  # Devuelve los datos como un DataFrame
+        else:
+            st.error("Error al obtener los datos. Código de estado: " + str(response.status_code))
+            return pd.DataFrame()  # Devuelve un DataFrame vacío si no se obtienen los datos
+
+    except Exception as e:
+        st.error(f"Ocurrió un error al intentar obtener los datos: {e}")
+        return pd.DataFrame()  # Devuelve un DataFrame vacío si hay un error
 
 st.set_page_config(page_title="Farmacias Chile", page_icon=":flag_chile:", layout="wide")
 
