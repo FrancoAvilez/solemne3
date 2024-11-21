@@ -32,6 +32,31 @@ def obtenerDatos():
     try:
         with open(json_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)  # Cargar los datos del archivo JSON
+            # Transformación de foreign keys a nombres de región
+            # Diccionario de mapeo de FK a nombres de región (puedes ajustarlo según tus datos)
+            regiones_map = {
+                1: "Región de Tarapacá",
+                2: "Región de Antofagasta",
+                3: "Región de Atacama",
+                4: "Región de Coquimbo",
+                5: "Región de Valparaíso",
+                6: "Región del Libertador General Bernardo O'Higgins",
+                7: "Región del Maule",
+                8: "Región del Biobío",
+                9: "Región de la Araucanía",
+                10: "Región de Los Lagos",
+                11: "Región de Aysén del General Carlos Ibáñez del Campo",
+                12: "Región de Magallanes y de la Antártica Chilena",
+                13: "Región Metropolitana de Santiago",
+                14: "Región de Los Ríos",
+                15: "Región de Arica y Parinacota",
+                16: "Región de Ñuble"
+            }
+            
+            # Reemplazar FK con nombres de región
+            for item in data:
+                if 'fk_region' in item:
+                    item['region_nombre'] = regiones_map.get(item['fk_region'], f"Región {item['fk_region']}")
             st.write("Datos cargados correctamente.")
             return pd.DataFrame(data)  # Convertir los datos a un DataFrame de Pandas
     except Exception as e:
@@ -50,47 +75,121 @@ with st.container():
     st.title('Análisis y Visualización de Farmacias en Chile')
     st.write('Esta aplicación web permite visualizar la ubicación de las farmacias en Chile, además de información relevante sobre ellas.')
 
+
+
+# Crear contenedor para filtros y resultados
 if not datos.empty:
-    # Mostrar tabla
-    st.subheader("Datos de Farmacias")
-    st.dataframe(datos)
-else:
-    st.warning("No se pudieron cargar los datos.")
 
-if not datos.empty:
-    # Crear filtro por comuna
-    comunas = datos["comuna_nombre"].unique()
-    comuna_seleccionada = st.selectbox("Selecciona una comuna", options=comunas)
+    # Crear columnas para sidebar y contenido principal
+    col_filtros, col_contenido = st.columns([1, 3])
 
-    # Filtrar datos
-    datos_filtrados = datos[datos["comuna_nombre"] == comuna_seleccionada]
+    with col_filtros:
+        # Filtros en la columna izquierda
+        st.sidebar.header("Filtros de Búsqueda")
 
-    # Mostrar datos filtrados
-    st.write(f"Farmacias en {comuna_seleccionada}:")
-    st.dataframe(datos_filtrados)
+        # Filtro de Texto para Nombre de Farmacia
+        st.sidebar.subheader("Búsqueda de Farmacia")
+        texto_farmacia = st.sidebar.text_input("Buscar farmacia por nombre", "")
 
-if not datos_filtrados.empty:
-    # Crear un gráfico de barras con la cantidad de farmacias por comuna
-    st.subheader("Gráfico: Cantidad de Farmacias por Comuna")
+        # Filtro de Región con Checkboxes
+        st.sidebar.subheader("Regiones")
+        regiones = datos["region_nombre"].unique()
+        selected_regiones = st.sidebar.multiselect(
+            "Selecciona Regiones",
+            options=["--"] + list(regiones),  # Agregar opción "--"
+            default=["--"]  # Opción por defecto
+        )
 
-    # Datos para el gráfico
-    grafico_datos = datos_filtrados["comuna_nombre"].value_counts()
+        # Filtro de Localidad con Checkboxes
+        st.sidebar.subheader("Localidades")
+        if selected_regiones and "--" not in selected_regiones:
+            localidades = datos[datos["region_nombre"].isin(selected_regiones)]["localidad_nombre"].unique()
+        else:
+            localidades = datos["localidad_nombre"].unique()
 
-    # Crear el gráfico
-    fig, ax = plt.subplots()
-    grafico_datos.plot(kind="bar", ax=ax, color="skyblue")
-    ax.set_title("Cantidad de Farmacias por Comuna")
-    ax.set_xlabel("Comuna")
-    ax.set_ylabel("Cantidad")
+        selected_localidades = st.sidebar.multiselect(
+            "Selecciona Localidades",
+            options=["--"] + list(localidades),  # Agregar opción "--"
+            default=["--"]  # Opción por defecto
+        )
 
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(fig)
+        # Filtro de Comuna con Checkboxes
+        st.sidebar.subheader("Comunas")
+        if selected_localidades and "--" not in selected_localidades:
+            comunas = datos[datos["localidad_nombre"].isin(selected_localidades)]["comuna_nombre"].unique()
+        elif selected_regiones and "--" not in selected_regiones:
+            comunas = datos[datos["region_nombre"].isin(selected_regiones)]["comuna_nombre"].unique()
+        else:
+            comunas = datos["comuna_nombre"].unique()
 
-if not datos_filtrados.empty:
+        selected_comunas = st.sidebar.multiselect(
+            "Selecciona Comunas",
+            options=["--"] + list(comunas),  # Agregar opción "--"
+            default=["--"]  # Opción por defecto
+        )
+
+    with col_contenido:
+        # Aplicar filtros solo si no se selecciona la opción "--"
+        datos_filtrados = datos.copy()
+
+        if texto_farmacia:
+            datos_filtrados = datos_filtrados[datos_filtrados["local_nombre"].str.contains(texto_farmacia, case=False, na=False)]
+
+        if selected_regiones and "--" not in selected_regiones:
+            datos_filtrados = datos_filtrados[datos_filtrados["region_nombre"].isin(selected_regiones)]
+
+        if selected_localidades and "--" not in selected_localidades:
+            datos_filtrados = datos_filtrados[datos_filtrados["localidad_nombre"].isin(selected_localidades)]
+
+        if selected_comunas and "--" not in selected_comunas:
+            datos_filtrados = datos_filtrados[datos_filtrados["comuna_nombre"].isin(selected_comunas)]
+
+        # Mostrar datos filtrados
+        st.subheader("Datos de Farmacias")
+        
+        tab1, tab2 = st.tabs(["Todos los Datos", "Datos Filtrados"])
+        
+        with tab1:
+            st.dataframe(datos)
+        
+        with tab2:
+            st.dataframe(datos_filtrados)
+
+    # Gráfico de cantidad de farmacias
+    if not datos_filtrados.empty:
+        st.subheader("Gráfico: Cantidad de Farmacias")
+        
+        opcion_grafico = st.selectbox("Agrupar por:", ["--"] + ["Región", "Localidad", "Comuna"])  # Agregar opción "--"
+        
+        if opcion_grafico == "Región":
+            grafico_datos = datos_filtrados["region_nombre"].value_counts()
+        
+        elif opcion_grafico == "Localidad":
+            grafico_datos = datos_filtrados["localidad_nombre"].value_counts()
+        
+        elif opcion_grafico == "Comuna":
+            grafico_datos = datos_filtrados["comuna_nombre"].value_counts()
+        
+        else:
+            grafico_datos = pd.Series()  # Si se selecciona "--", no se muestra gráfico
+
+        if not grafico_datos.empty:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            grafico_datos.plot(kind="bar", ax=ax, color="skyblue")
+            ax.set_title(f"Cantidad de Farmacias por {opcion_grafico}")
+            ax.set_xlabel(opcion_grafico)
+            ax.set_ylabel("Cantidad")
+            
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            
+            st.pyplot(fig)
+
     # Descargar datos filtrados
-    st.download_button(
-        label="Descargar datos filtrados en CSV",
-        data=datos_filtrados.to_csv(index=False),
-        file_name="farmacias_filtradas.csv",
-        mime="text/csv"
-    )
+    if not datos_filtrados.empty:
+        st.download_button(
+            label="Descargar datos filtrados en CSV",
+            data=datos_filtrados.to_csv(index=False),
+            file_name="farmacias_filtradas.csv",
+            mime="text/csv"
+        )
