@@ -58,7 +58,7 @@ def obtenerDatos():
                 if 'fk_region' in item:
                     item['region_nombre'] = regiones_map.get(item['fk_region'], f"Región {item['fk_region']}")
             st.write("Datos cargados correctamente.")
-            return pd.DataFrame(data)  # Convertir los datos a un DataFrame de Pandas
+            return pd.DataFrame(data)  # Convertir los datos a un DataFrame de Pandass
     except Exception as e:
         st.error(f"Error al cargar el archivo JSON: {e}")
         return pd.DataFrame()  # Retorna un DataFrame vacío en caso de error
