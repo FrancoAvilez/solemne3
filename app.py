@@ -65,6 +65,16 @@ def obtenerDatos():
 
 st.set_page_config(page_title="Farmacias Chile", page_icon=":flag_chile:", layout="wide")
 
+# Cargar CSS desde la carpeta 'style'
+def cargar_estilos():
+    with open("style/style.css", "r") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Llamar a la función para cargar los estilos
+cargar_estilos()
+
+
+
 # Cargar datos
 datos = obtenerDatos()
 
@@ -75,27 +85,24 @@ with st.container():
     st.title('Análisis y Visualización de Farmacias en Chile')
     st.write('Esta aplicación web permite visualizar la ubicación de las farmacias en Chile, además de información relevante sobre ellas.')
 
-
-
 # Crear contenedor para filtros y resultados
 if not datos.empty:
 
     # Crear columnas para sidebar y contenido principal
-    col_filtros, col_contenido = st.columns([1, 3])
+    col_filtros, col_contenido = st.columns([1, 16])
 
     with col_filtros:
         # Filtros en la columna izquierda
         st.sidebar.header("Filtros de Búsqueda")
 
-        # Filtro de Texto para Nombre de Farmacia
-        st.sidebar.subheader("Búsqueda de Farmacia")
+ 
         texto_farmacia = st.sidebar.text_input("Buscar farmacia por nombre", "")
 
         # Filtro de Región con Checkboxes
         st.sidebar.subheader("Regiones")
         regiones = datos["region_nombre"].unique()
         selected_regiones = st.sidebar.multiselect(
-            "Selecciona Regiones",
+            "Selecciona y busca por Regiones",
             options=["--"] + list(regiones),  # Agregar opción "--"
             default=["--"]  # Opción por defecto
         )
@@ -113,21 +120,6 @@ if not datos.empty:
             default=["--"]  # Opción por defecto
         )
 
-        # Filtro de Comuna con Checkboxes
-        st.sidebar.subheader("Comunas")
-        if selected_localidades and "--" not in selected_localidades:
-            comunas = datos[datos["localidad_nombre"].isin(selected_localidades)]["comuna_nombre"].unique()
-        elif selected_regiones and "--" not in selected_regiones:
-            comunas = datos[datos["region_nombre"].isin(selected_regiones)]["comuna_nombre"].unique()
-        else:
-            comunas = datos["comuna_nombre"].unique()
-
-        selected_comunas = st.sidebar.multiselect(
-            "Selecciona Comunas",
-            options=["--"] + list(comunas),  # Agregar opción "--"
-            default=["--"]  # Opción por defecto
-        )
-
     with col_contenido:
         # Aplicar filtros solo si no se selecciona la opción "--"
         datos_filtrados = datos.copy()
@@ -140,9 +132,6 @@ if not datos.empty:
 
         if selected_localidades and "--" not in selected_localidades:
             datos_filtrados = datos_filtrados[datos_filtrados["localidad_nombre"].isin(selected_localidades)]
-
-        if selected_comunas and "--" not in selected_comunas:
-            datos_filtrados = datos_filtrados[datos_filtrados["comuna_nombre"].isin(selected_comunas)]
 
         # Mostrar datos filtrados
         st.subheader("Datos de Farmacias")
@@ -166,9 +155,6 @@ if not datos.empty:
         
         elif opcion_grafico == "Localidad":
             grafico_datos = datos_filtrados["localidad_nombre"].value_counts()
-        
-        elif opcion_grafico == "Comuna":
-            grafico_datos = datos_filtrados["comuna_nombre"].value_counts()
         
         else:
             grafico_datos = pd.Series()  # Si se selecciona "--", no se muestra gráfico
