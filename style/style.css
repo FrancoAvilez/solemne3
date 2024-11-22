@@ -4,6 +4,20 @@ body {
     color: #333333; /* Texto principal oscuro */
 }
 
+.header {
+    background-image: url('/img/farmaciaFondo.jpg'); /* Ruta a tu imagen de fondo */
+    background-size: cover;
+    background-position: center;
+    padding: 50px 0;
+    text-align: center;
+    color: white;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 3em;
+}
+
 /* Encabezados */
 h1 {
     font-size: 2.8rem;

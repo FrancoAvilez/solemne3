@@ -55,8 +55,6 @@ def obtenerDatos():
                 if 'fk_region' in item:
                     # Reemplazar el número de la región con el nombre correspondiente
                     item['region_nombre'] = regiones_map.get(item['fk_region'], f"Región {item['fk_region']}")
-            
-            st.write("Datos cargados correctamente.")
             return pd.DataFrame(data)  # Convertir los datos a un DataFrame de Pandas
     except Exception as e:
         st.error(f"Error al cargar el archivo JSON: {e}")
@@ -75,11 +73,16 @@ cargar_estilos()
 # Cargar datos
 datos = obtenerDatos()
 
-#intro
+# Encabezado con imagen de fondo
+st.markdown("""
+<div class="header">
+    <h1>Análisis y Visualización de Farmacias en Chile</h1>
+</div>
+""", unsafe_allow_html=True)
 
+#intro
 with st.container():
-    st.title('Análisis y Visualización de Farmacias en Chile')
-    st.write('Esta aplicación web permite visualizar la ubicación de las farmacias en Chile, además de información relevante sobre ellas.')
+    st.write('Esta aplicación web permite visualizar la ubicación de las farmacias en Chile, además de información relevante sobre ellas, asi como nombre de local, en que localidad o region se encuentra, horarios de apertura y cierre segun el dia actual, entre otras.')
 
 # Crear contenedor para filtros y resultados
 if not datos.empty:
@@ -130,6 +133,11 @@ with col_filtros:
         options=comunas,
         default=[]
     )
+
+    # Mostrar la leyenda en la parte inferior del panel de filtros
+st.sidebar.markdown("### Leyenda de Regiones")
+for key, value in regiones_map.items():
+    st.sidebar.markdown(f"**{key}**: {value}")
 
 # Aplicar filtros al DataFrame
 datos_filtrados = datos.copy()
